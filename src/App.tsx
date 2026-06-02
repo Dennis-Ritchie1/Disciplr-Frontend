@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { WalletProvider } from './context/WalletContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -9,7 +10,11 @@ import Dashboard from './pages/Dashboard'
 import Vaults from './pages/Vaults'
 import CreateVault from './pages/CreateVault'
 import VaultDetail from './pages/VaultDetail'
-import VaultTransactions from './pages/VaultTransactions'
+import VaultTransactions from './pages/VaultTransactions';
+
+          <Route path="/transactions" element={<VaultTransactions />} />
+
+const Analytics = lazy(() => import('./pages/Analytics'))
 
 
 // New Verifier Page Imports
