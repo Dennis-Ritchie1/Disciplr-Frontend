@@ -16,6 +16,11 @@ See `documentation/getting-started.md` for setup instructions.
 
 For a token-to-component map, see `documentation/token-catalog.md`.
 
+## Component Documentation
+
+- [`MilestoneTracker`](documentation/milestone-tracker.md) - ordered vault
+  milestone progress with status badges and current-step accessibility.
+
 ## Responsive breakpoints
 
 Disciplr uses a five-step breakpoint scale that is shared between CSS, Tailwind v4
