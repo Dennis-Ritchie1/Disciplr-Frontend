@@ -3,12 +3,21 @@
  * Only allows http and https schemes.
  * Rejects javascript:, data:, and other potentially dangerous schemes.
  */
-export const isSafeEvidenceUrl = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url.trim());
-    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
-  } catch {
-    // If it's not a valid absolute URL, we treat it as unsafe.
-    return false;
+export function normalizeEvidenceUrl(value: string): string | null {
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return null
   }
-};
+
+  try {
+    const parsed = new URL(trimmed)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? trimmed : null
+  } catch {
+    return null
+  }
+}
+
+export function isSafeEvidenceUrl(value: string): boolean {
+  return normalizeEvidenceUrl(value) !== null
+}

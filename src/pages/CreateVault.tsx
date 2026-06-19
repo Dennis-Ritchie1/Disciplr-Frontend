@@ -6,6 +6,7 @@ import {
   hasCreateVaultErrors,
   validateCreateVault,
 } from '../utils/vaultValidation'
+import { EvidenceUpload } from '../components/EvidenceUpload'
 
 export default function CreateVault() {
   const [amount, setAmount] = useState('')
@@ -13,6 +14,7 @@ export default function CreateVault() {
   const [successAddress, setSuccessAddress] = useState('')
   const [failureAddress, setFailureAddress] = useState('')
   const [errors, setErrors] = useState<CreateVaultErrors>({})
+  const [evidenceUrl, setEvidenceUrl] = useState<string | undefined>()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +28,7 @@ export default function CreateVault() {
     if (hasCreateVaultErrors(nextErrors)) return
 
     // Placeholder: will call backend / contract
-    console.log({ amount, deadline, successAddress, failureAddress })
+    console.log({ amount, deadline, successAddress, failureAddress, evidenceUrl })
   }
 
   return (
@@ -94,6 +96,7 @@ export default function CreateVault() {
           error={errors.failureAddress}
           required
         />
+        <EvidenceUpload onChange={setEvidenceUrl} />
         <button
           type="submit"
           style={{
