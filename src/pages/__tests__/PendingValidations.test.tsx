@@ -236,4 +236,25 @@ describe('PendingValidations', () => {
       expect(screen.queryByRole('table')).not.toBeInTheDocument();
     });
   });
+
+  it('does not have hardcoded color classes on the primary container', () => {
+    const { container } = renderPage();
+    const primaryContainer = container.firstChild as HTMLElement;
+    expect(primaryContainer.className).not.toContain('bg-white');
+    expect(primaryContainer.className).not.toContain('text-gray-500');
+    expect(primaryContainer.className).not.toContain('text-red-600');
+  });
+
+  it('uses design tokens for batch action buttons', () => {
+    renderPage();
+    // Rejection button
+    const rejectBtn = screen.getByRole('button', { name: /Reject Selected/i });
+    expect(rejectBtn.getAttribute('style')).toContain('var(--danger)');
+    expect(rejectBtn.getAttribute('style')).toContain('var(--danger-transparent)');
+
+    // Approval button
+    const approveBtn = screen.getByRole('button', { name: /Approve Selected/i });
+    expect(approveBtn.getAttribute('style')).toContain('var(--success)');
+    expect(approveBtn.getAttribute('style')).toContain('white');
+  });
 });

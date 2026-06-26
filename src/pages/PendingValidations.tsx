@@ -119,7 +119,7 @@ export default function PendingValidations() {
                     aria-label="Select all validations"
                     checked={allSelected}
                     onChange={toggleAll}
-                    className="h-4 w-4 cursor-pointer accent-blue-600"
+                    className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
                   />
                 </th>
                 <th scope="col" className="p-4 font-medium text-sm" style={{ color: 'var(--muted)' }}>Vault & Milestone</th>
@@ -144,7 +144,7 @@ export default function PendingValidations() {
                         aria-label={`Select ${task.vaultName}`}
                         checked={checked}
                         onChange={() => toggleOne(task.id)}
-                        className="h-4 w-4 cursor-pointer accent-blue-600"
+                        className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
                       />
                     </td>
                     <td className="p-4">
@@ -165,7 +165,7 @@ export default function PendingValidations() {
                     <td className="p-4">
                       <div className="flex flex-col">
                         <Text role="body" as="p" className="text-sm">{task.deadline}</Text>
-                        <span className={`text-sm font-medium ${task.daysRemaining <= 3 ? 'text-red-600' : 'text-green-600'}`}>
+                        <span className="text-sm font-medium" style={{ color: task.daysRemaining <= 3 ? 'var(--danger)' : 'var(--success)' }}>
                           {task.daysRemaining} days left
                         </span>
                         {task.daysRemaining <= 3 && (
@@ -205,14 +205,16 @@ export default function PendingValidations() {
           <button
             onClick={() => openBatch('reject')}
             disabled={!hasSelection}
-            className="px-4 py-2 text-sm font-medium rounded bg-red-50 text-red-700 hover:bg-red-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium rounded transition disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: 'var(--danger-transparent)', color: 'var(--danger)' }}
           >
             Reject Selected
           </button>
           <button
             onClick={() => openBatch('approve')}
             disabled={!hasSelection}
-            className="px-4 py-2 text-sm font-bold rounded bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-bold rounded transition disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: 'var(--success)', color: 'white' }}
           >
             Approve Selected
           </button>
