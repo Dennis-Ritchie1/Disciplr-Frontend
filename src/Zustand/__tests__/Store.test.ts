@@ -65,6 +65,24 @@ describe('verifier store — batch mutators', () => {
     expect(validationHistory).toHaveLength(3);
   });
 
+  it('handles duplicate ids without creating duplicate history entries', () => {
+    useVerifierStore.getState().batchApprove(['a', 'a', 'b']);
+
+    const { pendingValidations, validationHistory } = useVerifierStore.getState();
+    expect(pendingValidations.map((t) => t.id)).toEqual(['c']);
+    expect(validationHistory.filter((t) => t.id === 'a')).toHaveLength(1);
+    expect(validationHistory).toHaveLength(2);
+  });
+
+  it('all-unknown ids is a no-op', () => {
+    useVerifierStore.getState().batchApprove(['x', 'y', 'z']);
+    useVerifierStore.getState().batchReject(['x', 'y', 'z']);
+
+    const { pendingValidations, validationHistory } = useVerifierStore.getState();
+    expect(pendingValidations).toHaveLength(3);
+    expect(validationHistory).toHaveLength(0);
+  });
+
   it('does not regress the single-task mutators', () => {
     useVerifierStore.getState().approveValidation('a', 'single ok');
     useVerifierStore.getState().rejectValidation('b', 'single no');
