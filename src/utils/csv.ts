@@ -3,6 +3,9 @@ import type { ValidationTask } from '../Zustand/Store';
 const HEADERS: string[] = ['ID', 'Status', 'Vault Name', 'Owner', 'Amount', 'Deadline', 'Milestone', 'Notes'];
 
 function escapeCell(value: string): string {
+  if (value.length > 0 && /^[=+\-@\t\r]/.test(value)) {
+    value = `'${value}`;
+  }
   if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
