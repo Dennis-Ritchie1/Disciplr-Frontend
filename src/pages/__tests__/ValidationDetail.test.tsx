@@ -199,4 +199,16 @@ describe('ValidationDetail Page', () => {
 
     expect(screen.getByText(/Rejection will notify the vault owner/)).toBeInTheDocument();
   });
+
+  it('does not have hardcoded color classes on the primary container', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+    const primaryContainer = container.firstChild as HTMLElement;
+    expect(primaryContainer.className).not.toContain('bg-white');
+    expect(primaryContainer.className).not.toContain('text-gray-500');
+    expect(primaryContainer.className).not.toContain('text-red-600');
+  });
 });

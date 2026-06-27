@@ -160,4 +160,12 @@ describe('VerifierDashboard', () => {
     const queueBtn = screen.getByText('View Pending Queue');
     expect(queueBtn.getAttribute('style')).toContain('var(--accent)');
   });
+
+  it('does not have hardcoded color classes on the primary container', () => {
+    const { container } = renderPage();
+    const primaryContainer = container.firstChild as HTMLElement;
+    expect(primaryContainer.className).not.toContain('bg-white');
+    expect(primaryContainer.className).not.toContain('text-gray-500');
+    expect(primaryContainer.className).not.toContain('text-red-600');
+  });
 });
