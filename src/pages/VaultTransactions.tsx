@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback, memo } from "react";
 import { windowRange, WINDOW_THRESHOLD } from "../utils/windowRange";
+import { toCsv, downloadCsv } from "../utils/csv";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TxType = "create" | "validate" | "release" | "redirect";
 type TxStatus = "confirmed" | "pending" | "failed";
 
-interface Transaction {
+export interface Transaction {
   id: string;
   type: TxType;
   vault: string;
@@ -281,46 +282,6 @@ function fmtAmount(n: number): string {
   });
 }
 
-function exportCSV(txs: Transaction[]): void {
-  const headers = [
-    "ID",
-    "Type",
-    "Vault",
-    "Amount (XLM)",
-    "Fee (XLM)",
-    "Status",
-    "Timestamp",
-    "Hash",
-    "Block",
-    "From",
-    "To",
-    "Memo",
-  ];
-  const rows = txs.map((t) => [
-    t.id,
-    t.type,
-    t.vault,
-    t.amount,
-    t.fee,
-    t.status,
-    t.timestamp.toISOString(),
-    t.hash,
-    t.block,
-    t.from,
-    t.to,
-    t.memo,
-  ]);
-  const csv = [headers, ...rows]
-    .map((r) => r.map((c) => `"${c}"`).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "vault-transactions.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function VaultTransactions() {
@@ -431,7 +392,8 @@ export default function VaultTransactions() {
             </div>
             <button
               className="vt-export-btn"
-              onClick={() => exportCSV(filtered)}
+              onClick={() => downloadCsv(toCsv(filtered, "transactions"), "vault-transactions.csv")}
+              disabled={filtered.length === 0}
             >
               <ExportIcon />
               Export CSV
@@ -1207,7 +1169,8 @@ const CSS = `
     padding: 10px 18px; border-radius: var(--radius-md); cursor: pointer;
     transition: background var(--duration-normal) var(--ease-in-out), border-color var(--duration-normal) var(--ease-in-out);
   }
-  .vt-export-btn:hover { background: rgba(110,231,183,0.14); border-color: rgba(110,231,183,0.4); }
+  .vt-export-btn:hover:not(:disabled) { background: rgba(110,231,183,0.14); border-color: rgba(110,231,183,0.4); }
+  .vt-export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .vt-stats {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px;
   }

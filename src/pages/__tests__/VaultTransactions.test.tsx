@@ -1,6 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import VaultTransactions from '../VaultTransactions';
+import VaultTransactions, { Transaction } from '../VaultTransactions';
+import { toCsv, downloadCsv } from '../../utils/csv';
+
+vi.mock('../../utils/csv', () => ({
+  toCsv: vi.fn((_data, _type) => 'mocked,csv,content'),
+  downloadCsv: vi.fn(),
+}));
 
 function renderPage() {
   return render(<VaultTransactions />);
@@ -273,9 +279,9 @@ describe('VaultTransactions', () => {
       fireEvent.change(selects[2], { target: { value: 'confirmed' } });
 
       // Pending and Failed sections should disappear
-      expect(screen.queryByText('Pending')).not.toBeInTheDocument();
-      expect(screen.queryByText('Failed')).not.toBeInTheDocument();
-      expect(screen.getByText('Confirmed')).toBeInTheDocument();
+      expect(screen.queryByRole('table', { name: /Pending transactions/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('table', { name: /Failed transactions/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('table', { name: /Confirmed transactions/i })).toBeInTheDocument();
     });
 
     it('hash search filters the list to matching transactions only', () => {
@@ -387,5 +393,66 @@ describe('VaultTransactions large fixture integration', () => {
     render(<VaultTransactions />);
     const rows = document.querySelectorAll('.vt-tx-row');
     expect(rows.length).toBe(10);
+  });
+});
+
+describe('CSV Export', () => {
+  it('calls toCsv and downloadCsv with the filtered subset when Export CSV is clicked', () => {
+    vi.mocked(toCsv).mockClear();
+    vi.mocked(downloadCsv).mockClear();
+
+    renderPage();
+    const exportBtn = screen.getByRole('button', { name: /Export CSV/i });
+    expect(exportBtn).not.toBeDisabled();
+
+    // Click the export button
+    fireEvent.click(exportBtn);
+
+    // It should have called toCsv with the mock transactions array (length 10) and 'transactions'
+    expect(toCsv).toHaveBeenCalledTimes(1);
+    const callArgs = vi.mocked(toCsv).mock.calls[0];
+    expect(callArgs[0]).toHaveLength(10);
+    expect(callArgs[1]).toBe('transactions');
+
+    expect(downloadCsv).toHaveBeenCalledTimes(1);
+    expect(downloadCsv).toHaveBeenCalledWith('mocked,csv,content', 'vault-transactions.csv');
+  });
+
+  it('reflects active filters when exporting', () => {
+    vi.mocked(toCsv).mockClear();
+    vi.mocked(downloadCsv).mockClear();
+
+    renderPage();
+    
+    // Filter by type "create" (which has 3 items)
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'create' } });
+
+    const exportBtn = screen.getByRole('button', { name: /Export CSV/i });
+    fireEvent.click(exportBtn);
+
+    expect(toCsv).toHaveBeenCalledTimes(1);
+    const callArgs = vi.mocked(toCsv).mock.calls[0];
+    // Should only have the 3 filtered "create" transactions
+    expect(callArgs[0]).toHaveLength(3);
+    expect((callArgs[0] as Transaction[]).every(tx => tx.type === 'create')).toBe(true);
+
+    expect(downloadCsv).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the export button when the filtered list is empty', () => {
+    renderPage();
+
+    // Enter a search query that matches nothing
+    const searchInput = screen.getByPlaceholderText(/search by transaction hash/i);
+    fireEvent.change(searchInput, { target: { value: 'nonexistenthash12345' } });
+
+    const exportBtn = screen.getByRole('button', { name: /Export CSV/i });
+    expect(exportBtn).toBeDisabled();
+
+    // Clicking it does not trigger download
+    vi.mocked(downloadCsv).mockClear();
+    fireEvent.click(exportBtn);
+    expect(downloadCsv).not.toHaveBeenCalled();
   });
 });

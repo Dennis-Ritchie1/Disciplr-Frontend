@@ -113,6 +113,26 @@ describe('toCsv', () => {
     const result = toCsv([]);
     expect(result).toBe('ID,Status,Vault Name,Owner,Amount,Deadline,Milestone,Notes');
   });
+
+  it('escapes commas in transactions by wrapping the field in double quotes', () => {
+    const tx = {
+      id: 'tx-001',
+      type: 'create' as const,
+      vault: 'Alpha, Vault',
+      amount: 100,
+      fee: 0.0001,
+      status: 'confirmed' as const,
+      timestamp: new Date('2026-01-01T00:00:00.000Z'),
+      hash: 'hash123',
+      block: 12345,
+      from: 'G1',
+      to: 'G2',
+      memo: 'Initial, deposit',
+    };
+    const result = toCsv([tx], 'transactions');
+    expect(result).toContain('"Alpha, Vault"');
+    expect(result).toContain('"Initial, deposit"');
+  });
 });
 
 describe('downloadCsv', () => {

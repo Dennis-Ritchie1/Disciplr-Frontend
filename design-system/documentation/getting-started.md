@@ -30,6 +30,7 @@ Design tokens live in `design-system/tokens/`:
    responsive classes defined in `src/index.css`.
 4. Use `src/utils/motion.ts` for Framer Motion transitions. This keeps
    dropdowns, pages, and tooltips aligned with `motion.json`.
+5. Use `src/utils/csv.ts` for standardized CSV exports. The `toCsv()` utility supports both `ValidationTask[]` (for verification history) and `Transaction[]` (for vault activity logs). Pair it with `downloadCsv()` to trigger browser file downloads with stable, human-readable headers and proper comma-escaping.
 
 ## Adding A Token
 
