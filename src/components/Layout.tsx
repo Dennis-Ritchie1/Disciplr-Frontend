@@ -5,6 +5,7 @@ import { WalletConnectButton } from "./Wallet/WalletConnectButton";
 import MobileDrawer from "./MobileDrawer";
 import NavLink from "./NavLink";
 import { Text } from "./Text";
+import NotificationBell from "./Notification/NotificationBell";
 import "./Layout.css";
 
 interface LayoutProps {
@@ -84,9 +85,13 @@ export default function Layout({ children }: LayoutProps) {
             >
               Create Vault
             </Link>
+            <NotificationBell />
             <WalletConnectButton />
           </div>
         </nav>
+        <div className="mobile-bell-wrapper" {...backgroundA11yProps}>
+          <NotificationBell />
+        </div>
         <button
           type="button"
           className="mobile-hamburger"
