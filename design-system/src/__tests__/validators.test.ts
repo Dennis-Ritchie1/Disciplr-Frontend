@@ -38,6 +38,89 @@ const validChart = () => ({
   sequential: ramp(5),
 });
 
+describe('isValidHexColor', () => {
+  it.each([
+    ['#0A7668', true],
+    ['#aabbcc', true],
+    ['#FFFFFF', true],
+    ['#abc', false],          // 3-digit
+    ['#aabbccdd', false],     // 8-digit
+    ['0A7668', false],        // missing #
+    ['#GGGGGG', false],       // non-hex chars
+    ['', false],              // empty
+    ['#abcde', false],        // 5-digit
+  ])('%s → %s', (input, expected) => {
+    expect(isValidHexColor(input)).toBe(expected);
+  });
+});
+
+describe('isValidRgbColor', () => {
+  it.each([
+    ['rgb(0, 0, 0)', true],
+    ['rgb(255, 128, 64)', true],
+    ['rgb(0,0,0)', true],
+    ['rgb( 0, 0, 0)', false],   // leading space inside parens
+    ['rgb (0, 0, 0)', false],    // space before paren
+    ['rgba(0, 0, 0, 1)', false],// alpha variant
+    ['rgb(0, 0)', false],       // missing channel
+    ['', false],
+  ])('%s → %s', (input, expected) => {
+    expect(isValidRgbColor(input)).toBe(expected);
+  });
+});
+
+describe('isValidHslColor', () => {
+  it.each([
+    ['hsl(0, 0%, 0%)', true],
+    ['hsl(360, 100%, 50%)', true],
+    ['hsl(210, 50%, 40%)', true],
+    ['hsl(210, 50, 40)', false],    // missing %
+    ['hsl(210, 50%, 40)', false],   // missing % on lightness
+    ['hsla(210, 50%, 40%, 1)', false], // alpha variant
+    ['hsl( 0, 0%, 0%)', false],     // extra space
+    ['', false],
+  ])('%s → %s', (input, expected) => {
+    expect(isValidHslColor(input)).toBe(expected);
+  });
+});
+
+describe('isKebabCase', () => {
+  it.each([
+    ['chart-grid', true],
+    ['color-primary', true],
+    ['a-b-c', true],
+    ['color', true],
+    ['Chart-Grid', false],     // uppercase
+    ['chart_grid', false],     // underscore
+    ['1-leading-digit', false],// leading digit
+    ['trailing-hyphen-', false],// trailing hyphen
+    ['-leading-hyphen', false],// leading hyphen
+    ['color--double', false],  // double hyphen
+    ['', false],
+    [' ', false],
+  ])('%s → %s', (input, expected) => {
+    expect(isKebabCase(input)).toBe(expected);
+  });
+});
+
+describe('hasValidTokenPrefix', () => {
+  it.each([
+    ['color-accent', true],
+    ['spacing-4', true],
+    ['typography-title', true],
+    ['shadow-card', true],
+    ['radius-md', true],
+    ['border-default', true],
+    ['motion-fast', true],
+    ['chart-accent', false],   // unknown prefix
+    ['color', false],          // prefix without hyphen
+    ['colours-accent', false], // typo prefix
+    ['', false],
+  ])('%s → %s', (input, expected) => {
+    expect(hasValidTokenPrefix(input)).toBe(expected);
+  });
+});
+
 describe('standalone color string validators', () => {
   it('validates six-digit hex colors case-insensitively', () => {
     expect(isValidHexColor('#ABCDEF')).toBe(true);
