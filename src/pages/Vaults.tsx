@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, MemoryRouter } from 'react-router-dom'
 import { Text } from '../components/Text'
 import { StatusChip } from '../components/StatusChip'
-
-type VaultStatus = 'active' | 'completed' | 'failed' | 'cancelled' | 'pending_validation'
+import type { VaultStatus } from '../types/vault'
 
 interface Vault {
   id: string

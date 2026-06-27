@@ -2,11 +2,9 @@ import { useState, useMemo, useCallback, memo } from "react";
 import { windowRange, WINDOW_THRESHOLD } from "../utils/windowRange";
 import { toCsv, downloadCsv } from "../utils/csv";
 import { AddressDisplay } from "../components/AddressDisplay";
+import type { TxType, TxStatus } from "../types/vault";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type TxType = "create" | "validate" | "release" | "redirect";
-type TxStatus = "confirmed" | "pending" | "failed";
-
 export interface Transaction {
   id: string;
   type: TxType;

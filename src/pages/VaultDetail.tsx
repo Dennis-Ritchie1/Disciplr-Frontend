@@ -8,17 +8,9 @@ import {
 } from "../components/FundReleaseStatus";
 import { Text } from "../components/Text";
 import { AddressDisplay } from "../components/AddressDisplay";
+import type { VaultStatus, MilestoneStatus, TxType } from "../types/vault";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type VaultStatus =
-  | "active"
-  | "completed"
-  | "failed"
-  | "cancelled"
-  | "pending_validation";
-
-type MilestoneStatus = "pending" | "validated" | "failed";
-
 interface Milestone {
   id: string;
   title: string;
@@ -31,7 +23,7 @@ interface Milestone {
 
 interface VaultTransaction {
   id: string;
-  type: "create" | "validate" | "release" | "redirect";
+  type: TxType;
   hash: string;
   timestamp: string;
   amount?: number;

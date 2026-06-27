@@ -5,7 +5,8 @@ import VaultCard from '../components/VaultCard';
 // ── Types ─────────────────────────────────────────────────────────────────────
 import { useMemo } from 'react';
 import * as dashboardUtils from '../utils/dashboard';
-import type { VaultStatus, VaultPreview, Activity, Deadline } from '../utils/dashboard';
+import type { VaultPreview, Activity, Deadline } from '../utils/dashboard';
+import type { VaultStatus } from '../types/vault';
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 const SUMMARY = {
@@ -114,6 +115,11 @@ const STATUS_CFG: Record<
     label: "Failed",
     color: "var(--danger)",
     bg: "rgba(239,68,68,0.1)",
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "var(--muted)",
+    bg: "rgba(156,163,175,0.1)",
   },
 };
 
