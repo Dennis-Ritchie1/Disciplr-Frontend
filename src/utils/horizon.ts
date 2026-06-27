@@ -10,6 +10,8 @@ export const USDC_ISSUERS: Record<WalletNetwork, string> = {
     PUBLIC: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
 };
 
+export const MAX_HORIZON_BALANCES = 100;
+
 export type HorizonBalanceErrorCode = 'ACCOUNT_NOT_FOUND' | 'REQUEST_FAILED' | 'INVALID_RESPONSE';
 
 export class HorizonBalanceError extends Error {
@@ -67,6 +69,10 @@ export async function fetchUsdcBalance(
 
     if (!Array.isArray(account.balances)) {
         throw new HorizonBalanceError('INVALID_RESPONSE', 'Horizon account response did not include balances.');
+    }
+
+    if (account.balances.length > MAX_HORIZON_BALANCES) {
+        throw new HorizonBalanceError('INVALID_RESPONSE', 'Horizon account response included too many balances.');
     }
 
     const usdcBalance = account.balances.find(
