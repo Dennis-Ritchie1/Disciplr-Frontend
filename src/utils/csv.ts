@@ -4,6 +4,36 @@ import type { Transaction } from '../pages/VaultTransactions';
 const TASK_HEADERS: string[] = ['ID', 'Status', 'Vault Name', 'Owner', 'Amount', 'Deadline', 'Milestone', 'Notes'];
 const TX_HEADERS: string[] = ['ID', 'Type', 'Vault', 'Amount (XLM)', 'Fee (XLM)', 'Status', 'Timestamp', 'Hash', 'Block', 'From', 'To', 'Memo'];
 
+/** Safe placeholder for amount/fee cells that are not finite numbers after normalization. */
+export const NON_FINITE_NUMERIC_PLACEHOLDER = '';
+
+/**
+ * Normalizes a numeric CSV cell to a canonical dot-decimal, ungrouped string.
+ * Non-finite values (NaN, ±Infinity) and unparseable input resolve to
+ * {@link NON_FINITE_NUMERIC_PLACEHOLDER}. Call this before {@link escapeCell}.
+ */
+export function normalizeNumericCell(value: number | string): string {
+  let n: number;
+  if (typeof value === 'number') {
+    n = value;
+  } else if (typeof value === 'string') {
+    const stripped = value.replace(/,/g, '').trim();
+    if (stripped.length === 0) return NON_FINITE_NUMERIC_PLACEHOLDER;
+    n = Number(stripped);
+  } else {
+    return NON_FINITE_NUMERIC_PLACEHOLDER;
+  }
+
+  if (!Number.isFinite(n)) {
+    return NON_FINITE_NUMERIC_PLACEHOLDER;
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    useGrouping: false,
+    maximumSignificantDigits: 21,
+  }).format(n);
+}
+
 function escapeCell(value: string): string {
   if (value.length > 0 && /^[=+\-@\t\r]/.test(value)) {
     value = `'${value}`;
@@ -33,8 +63,8 @@ function txToRow(tx: Transaction): string {
     tx.id,
     tx.type,
     tx.vault,
-    String(tx.amount),
-    String(tx.fee),
+    normalizeNumericCell(tx.amount),
+    normalizeNumericCell(tx.fee),
     tx.status,
     tx.timestamp instanceof Date ? tx.timestamp.toISOString() : String(tx.timestamp),
     tx.hash,
