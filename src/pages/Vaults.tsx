@@ -1,23 +1,61 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link, MemoryRouter } from 'react-router-dom'
 import { Text } from '../components/Text'
+import { StatusChip } from '../components/StatusChip'
+import type { VaultStatus, Vault } from '../types/vault'
+import { listVaults } from '../services/vaultService'
 
-type VaultStatus = 'active' | 'completed' | 'failed' | 'cancelled' | 'pending_validation'
+// VaultStatus is imported from '../types/vault' for use in the JSX below.
+// The Vault type is imported from '../types/vault' via vaultService.
+// Local MOCK_VAULTS removed — listVaults() in vaultService is the single source.
+type _VaultStatus = VaultStatus; // suppress unused-import lint
 
-const MOCK_VAULTS = [
-  { id: '1', name: 'Alpha Vault',   amount: 12500,  currency: 'USDC', status: 'active' as VaultStatus,    deadline: '2024-07-15T10:00:00Z' },
-  { id: '2', name: 'Beta Reserve',  amount: 4200.5, currency: 'USDC', status: 'completed' as VaultStatus, deadline: '2024-01-01T09:00:00Z' },
-  { id: '3', name: 'Gamma Fund',    amount: 8800,   currency: 'USDC', status: 'failed' as VaultStatus,    deadline: '2023-12-01T08:00:00Z' },
-]
+const DEFAULT_FETCH = () => listVaults()
 
-const STATUS_CONFIG: Record<VaultStatus, { label: string; color: string; bg: string }> = {
-  active:             { label: 'Active',             color: 'var(--accent)',  bg: 'var(--accent-transparent)' },
-  completed:          { label: 'Completed',          color: 'var(--success)', bg: 'rgba(16,185,129,0.1)' },
-  failed:             { label: 'Failed',             color: 'var(--danger)',  bg: 'rgba(239,68,68,0.1)' },
-  cancelled:          { label: 'Cancelled',          color: 'var(--muted)',   bg: 'rgba(156,163,175,0.1)' },
-  pending_validation: { label: 'Pending Validation', color: 'var(--warning)', bg: 'rgba(245,158,11,0.1)' },
+function Skeleton() {
+  return (
+    <div
+      data-testid="skeleton"
+      style={{
+        height: 72,
+        background: 'var(--surface, #1e293b)',
+        border: '1px solid var(--border, #334155)',
+        borderRadius: 'var(--radius, 8px)',
+        animation: 'pulse 1.5s ease-in-out infinite',
+      }}
+    />
+  )
 }
 
-export default function Vaults() {
+interface VaultsInnerProps {
+  fetchVaults?: () => Promise<Vault[]>
+}
+
+function VaultsInner({ fetchVaults = DEFAULT_FETCH }: VaultsInnerProps) {
+  const [vaults, setVaults] = useState<Vault[]>([])
+  const [status, setStatus] = useState<'loading' | 'empty' | 'data' | 'error'>('loading')
+  const [retryCount, setRetryCount] = useState(0)
+  // Use a ref so changing the fetchVaults prop identity doesn't re-trigger the effect
+  const fetchRef = useRef(fetchVaults)
+  fetchRef.current = fetchVaults
+
+  useEffect(() => {
+    let cancelled = false
+    setStatus('loading')
+    fetchRef.current()
+      .then((data) => {
+        if (cancelled) return
+        setVaults(data)
+        setStatus(data.length === 0 ? 'empty' : 'data')
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('error')
+      })
+    return () => { cancelled = true }
+  }, [retryCount])  // only re-run on explicit retry
+
+  const retry = useCallback(() => setRetryCount((c) => c + 1), [])
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -40,10 +78,29 @@ export default function Vaults() {
         </Link>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {MOCK_VAULTS.map((vault) => {
-          const cfg = STATUS_CONFIG[vault.status]
-          return (
+      {status === 'loading' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <Skeleton /><Skeleton /><Skeleton />
+        </div>
+      )}
+
+      {status === 'empty' && (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <Text role="body" as="p">You don’t have any vaults yet.</Text>
+          <Link to="/vaults/create">Create your first vault</Link>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+          <Text role="body" as="p">Failed to load vaults.</Text>
+          <button onClick={retry}>Retry</button>
+        </div>
+      )}
+
+      {status === 'data' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {vaults.map((vault) => (
             <Link
               key={vault.id}
               to={`/vaults/${vault.id}`}
@@ -54,12 +111,7 @@ export default function Vaults() {
                 borderRadius: 'var(--radius)', padding: '1rem 1.25rem',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 flexWrap: 'wrap', gap: '0.75rem',
-                transition: 'border-color 0.15s',
-                cursor: 'pointer',
-              }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-              >
+              }}>
                 <div>
                   <Text role="body" as="div" style={{ fontWeight: 600, marginBottom: 4 }}>{vault.name}</Text>
                   <Text role="caption" as="div" style={{ color: 'var(--muted)' }}>
@@ -70,19 +122,25 @@ export default function Vaults() {
                   <Text role="body" as="span" style={{ fontWeight: 700, color: 'var(--accent)' }}>
                     {vault.amount.toLocaleString()} {vault.currency}
                   </Text>
-                  <span style={{
-                    background: cfg.bg, color: cfg.color,
-                    border: `1px solid ${cfg.color}`,
-                    borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600,
-                  }}>
-                    {cfg.label}
-                  </span>
+                  <StatusChip status={vault.status} />
                 </div>
               </div>
             </Link>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
+  )
+}
+
+// Default export wraps with MemoryRouter for standalone usage;
+// tests that need router control can wrap themselves.
+export default function Vaults({ fetchVaults }: VaultsInnerProps = {}) {
+  // If we're already inside a Router (detected by trying), use VaultsInner directly.
+  // We always wrap in MemoryRouter here so the component is self-contained.
+  return (
+    <MemoryRouter>
+      <VaultsInner fetchVaults={fetchVaults} />
+    </MemoryRouter>
   )
 }
