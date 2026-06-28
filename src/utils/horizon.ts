@@ -10,6 +10,8 @@ export const USDC_ISSUERS: Record<WalletNetwork, string> = {
     PUBLIC: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
 };
 
+export const MAX_HORIZON_BALANCES = 100;
+
 export type HorizonBalanceErrorCode = 'ACCOUNT_NOT_FOUND' | 'REQUEST_FAILED' | 'INVALID_RESPONSE';
 
 export class HorizonBalanceError extends Error {
@@ -85,6 +87,23 @@ export async function fetchUsdcBalance(
             throw new HorizonBalanceError('INVALID_RESPONSE', 'Horizon account response did not include balances.');
         }
 
+    if (account.balances.length > MAX_HORIZON_BALANCES) {
+        throw new HorizonBalanceError('INVALID_RESPONSE', 'Horizon account response included too many balances.');
+    }
+
+    const usdcBalance = account.balances.find(
+        (balanceLine) =>
+            balanceLine.asset_type !== 'native' &&
+            balanceLine.asset_code === 'USDC' &&
+            balanceLine.asset_issuer === issuer,
+    );
+
+    return {
+        balance: usdcBalance?.balance ?? '0.00',
+        hasTrustline: Boolean(usdcBalance),
+        issuer,
+        network,
+    };
         const usdcBalance = account.balances.find(
             (balanceLine) =>
                 balanceLine.asset_type !== 'native' &&
