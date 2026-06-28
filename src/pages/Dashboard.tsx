@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Text } from '../components/Text'
+import { useVaults } from '../hooks/useVaults'
+import type { VaultStatus } from '../data/vaults'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type VaultStatus = 'active' | 'pending_validation' | 'completed' | 'failed'
-
 interface VaultPreview {
   id: string
   name: string
@@ -31,12 +31,6 @@ interface Deadline {
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 const SUMMARY = { totalLocked: 25500, activeVaults: 3, pendingMilestones: 2, completionRate: 67 }
-
-const VAULTS: VaultPreview[] = [
-  { id: '1', name: 'Alpha Vault',  amount: 12500, currency: 'USDC', status: 'active',             progressPct: 42, deadline: '2024-07-15T10:00:00Z' },
-  { id: '2', name: 'Beta Reserve', amount: 8800,  currency: 'USDC', status: 'pending_validation', progressPct: 78, deadline: '2024-05-20T10:00:00Z' },
-  { id: '3', name: 'Gamma Fund',   amount: 4200,  currency: 'USDC', status: 'active',             progressPct: 25, deadline: '2024-09-01T10:00:00Z' },
-]
 
 const ACTIVITY: Activity[] = [
   { id: 'a1', type: 'validated',  vault: 'Alpha Vault',  timestamp: '2024-04-28T14:30:00Z' },
@@ -123,7 +117,8 @@ function SectionHeader({ title, action, to }: { title: string; action?: string; 
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const hasVaults = VAULTS.length > 0
+  const { vaults, loading, error } = useVaults()
+  const hasVaults = vaults.length > 0
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 0 3rem' }}>
@@ -180,9 +175,13 @@ export default function Dashboard() {
           {/* Vault Preview List */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1.25rem' }}>
             <SectionHeader title="Active Vaults" action="View all →" to="/vaults" />
-            {hasVaults ? (
+            {loading ? (
+              <Text role="caption" as="div" style={{ color: 'var(--muted)', padding: '1rem 0' }}>Loading…</Text>
+            ) : error ? (
+              <Text role="caption" as="div" style={{ color: 'var(--danger)', padding: '1rem 0' }}>{error}</Text>
+            ) : hasVaults ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {VAULTS.map(v => (
+                {vaults.map(v => (
                   <div key={v.id} style={{
                     background: 'var(--bg)', border: '1px solid var(--border)',
                     borderRadius: 'var(--radius)', padding: '0.875rem 1rem',
