@@ -1,12 +1,13 @@
-import { useState, useMemo, useCallback, memo, useEffect } from "react";
-import { windowRange, WINDOW_THRESHOLD } from "../utils/windowRange";
-import { toCsv, downloadCsv } from "../utils/csv";
-import { computeTxTotals } from "../utils/txTotals";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { AddressDisplay } from "../components/AddressDisplay";
 import { Tooltip } from "../components/Tooltip";
-import type { TxType, TxStatus } from "../types/vault";
 import type { VaultActivityRecord } from "../services/vaultService";
 import { listAllActivity } from "../services/vaultService";
+import type { TxStatus, TxType } from "../types/vault";
+import { downloadCsv, toCsv } from "../utils/csv";
+import { formatRelativeTime } from "../utils/relativeTime";
+import { computeTxTotals } from "../utils/txTotals";
+import { windowRange } from "../utils/windowRange";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type Transaction = VaultActivityRecord;
@@ -105,11 +106,7 @@ function truncHash(hash: string, head = 8, tail = 6): string {
 }
 
 function fmtTime(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  if (diff < 60000) return "just now";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatRelativeTime(date);
 }
 
 function fmtFullTime(date: Date): string {
@@ -131,7 +128,6 @@ function fmtAmount(n: number): string {
   });
 }
 
-
 // ── Main Component ─────────────────────────────────────────────────────────────────
 export default function VaultTransactions() {
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -146,8 +142,11 @@ export default function VaultTransactions() {
 
   // Derive vault filter options from loaded transactions
   const VAULTS = useMemo(
-    () => ["All Vaults", ...Array.from(new Set(allTransactions.map((t) => t.vault)))],
-    [allTransactions]
+    () => [
+      "All Vaults",
+      ...Array.from(new Set(allTransactions.map((t) => t.vault))),
+    ],
+    [allTransactions],
   );
 
   const transactions = allTransactions;
@@ -202,16 +201,34 @@ export default function VaultTransactions() {
     transactions,
   ]);
 
-  const pending = useMemo(() => filtered.filter((t) => t.status === "pending"), [filtered]);
-  const failed = useMemo(() => filtered.filter((t) => t.status === "failed"), [filtered]);
-  const rest = useMemo(() => filtered.filter((t) => t.status === "confirmed"), [filtered]);
+  const pending = useMemo(
+    () => filtered.filter((t) => t.status === "pending"),
+    [filtered],
+  );
+  const failed = useMemo(
+    () => filtered.filter((t) => t.status === "failed"),
+    [filtered],
+  );
+  const rest = useMemo(
+    () => filtered.filter((t) => t.status === "confirmed"),
+    [filtered],
+  );
 
   // Reset window anchor when filters change so the user always sees the top.
   // windowRange is applied per-section; each section independently does not
   // exceed WINDOW_THRESHOLD in typical use, but large "confirmed" lists will.
-  const pendingWindow = useMemo(() => windowRange(pending, anchorIndex), [pending, anchorIndex]);
-  const failedWindow = useMemo(() => windowRange(failed, anchorIndex), [failed, anchorIndex]);
-  const restWindow = useMemo(() => windowRange(rest, anchorIndex), [rest, anchorIndex]);
+  const pendingWindow = useMemo(
+    () => windowRange(pending, anchorIndex),
+    [pending, anchorIndex],
+  );
+  const failedWindow = useMemo(
+    () => windowRange(failed, anchorIndex),
+    [failed, anchorIndex],
+  );
+  const restWindow = useMemo(
+    () => windowRange(rest, anchorIndex),
+    [rest, anchorIndex],
+  );
 
   const stats = useMemo(
     () => ({
@@ -239,10 +256,7 @@ export default function VaultTransactions() {
     return counts;
   }, [filtered]);
 
-  const filteredTotals = useMemo(
-    () => computeTxTotals(filtered),
-    [filtered],
-  );
+  const filteredTotals = useMemo(() => computeTxTotals(filtered), [filtered]);
 
   const clearFilters = () => {
     setSelectedTypes([...ALL_TYPES]);
@@ -282,7 +296,12 @@ export default function VaultTransactions() {
             </div>
             <button
               className="vt-export-btn"
-              onClick={() => downloadCsv(toCsv(filtered, "transactions"), "vault-transactions.csv")}
+              onClick={() =>
+                downloadCsv(
+                  toCsv(filtered, "transactions"),
+                  "vault-transactions.csv",
+                )
+              }
               disabled={filtered.length === 0}
             >
               <ExportIcon />
@@ -318,12 +337,18 @@ export default function VaultTransactions() {
           </div>
 
           {/* Type Filter Toolbar */}
-          <div className="vt-type-toolbar" role="group" aria-label="Filter by transaction type">
+          <div
+            className="vt-type-toolbar"
+            role="group"
+            aria-label="Filter by transaction type"
+          >
             <button
               className={`vt-type-chip ${selectedTypes.length === ALL_TYPES.length ? "vt-type-chip--active-all" : ""}`}
               onClick={() =>
                 setSelectedTypes(
-                  selectedTypes.length === ALL_TYPES.length ? [] : [...ALL_TYPES],
+                  selectedTypes.length === ALL_TYPES.length
+                    ? []
+                    : [...ALL_TYPES],
                 )
               }
               aria-pressed={selectedTypes.length === ALL_TYPES.length}
@@ -356,9 +381,14 @@ export default function VaultTransactions() {
                   }
                   aria-pressed={active}
                 >
-                  <meta.icon size={13} color={active ? meta.color : undefined} />
+                  <meta.icon
+                    size={13}
+                    color={active ? meta.color : undefined}
+                  />
                   <span className="vt-type-chip-label">{meta.label}</span>
-                  <span className="vt-type-chip-count">{filteredTypeCounts[type] ?? 0}</span>
+                  <span className="vt-type-chip-count">
+                    {filteredTypeCounts[type] ?? 0}
+                  </span>
                 </button>
               );
             })}
@@ -460,7 +490,9 @@ export default function VaultTransactions() {
                   end={pendingWindow.endIndex}
                   total={pending.length}
                   onPrev={() => setAnchorIndex((a) => Math.max(0, a - 10))}
-                  onNext={() => setAnchorIndex((a) => Math.min(pending.length - 1, a + 10))}
+                  onNext={() =>
+                    setAnchorIndex((a) => Math.min(pending.length - 1, a + 10))
+                  }
                 />
               )}
             </Section>
@@ -486,7 +518,9 @@ export default function VaultTransactions() {
                   end={failedWindow.endIndex}
                   total={failed.length}
                   onPrev={() => setAnchorIndex((a) => Math.max(0, a - 10))}
-                  onNext={() => setAnchorIndex((a) => Math.min(failed.length - 1, a + 10))}
+                  onNext={() =>
+                    setAnchorIndex((a) => Math.min(failed.length - 1, a + 10))
+                  }
                 />
               )}
             </Section>
@@ -513,7 +547,9 @@ export default function VaultTransactions() {
                     end={restWindow.endIndex}
                     total={rest.length}
                     onPrev={() => setAnchorIndex((a) => Math.max(0, a - 10))}
-                    onNext={() => setAnchorIndex((a) => Math.min(rest.length - 1, a + 10))}
+                    onNext={() =>
+                      setAnchorIndex((a) => Math.min(rest.length - 1, a + 10))
+                    }
                   />
                 )}
               </>
@@ -547,7 +583,11 @@ function Section({ title, accent, count, children }: SectionProps) {
   return (
     <section className="vt-section">
       <div className="vt-section-header">
-        <span className="vt-section-dot" style={{ background: accent }} aria-hidden="true" />
+        <span
+          className="vt-section-dot"
+          style={{ background: accent }}
+          aria-hidden="true"
+        />
         <span className="vt-section-title">{title}</span>
         <span className="vt-section-count">{count}</span>
       </div>
@@ -566,9 +606,7 @@ function Section({ title, accent, count, children }: SectionProps) {
             </div>
           </div>
         )}
-        <div role={hasRows ? "rowgroup" : undefined}>
-          {children}
-        </div>
+        <div role={hasRows ? "rowgroup" : undefined}>{children}</div>
       </div>
     </section>
   );
@@ -582,7 +620,13 @@ interface TxRowProps {
   children?: React.ReactNode;
 }
 
-const TxRow = memo(function TxRow({ tx, onSelect, onCopy, copiedId, children }: TxRowProps) {
+const TxRow = memo(function TxRow({
+  tx,
+  onSelect,
+  onCopy,
+  copiedId,
+  children,
+}: TxRowProps) {
   const meta = TYPE_META[tx.type];
   const status = STATUS_META[tx.status];
   const Icon = meta.icon;
@@ -646,7 +690,11 @@ const TxRow = memo(function TxRow({ tx, onSelect, onCopy, copiedId, children }: 
           className="vt-tx-status"
           style={{ color: status.color, background: status.bg }}
         >
-          <span className="vt-status-dot" style={{ background: status.dot }} aria-hidden="true" />
+          <span
+            className="vt-status-dot"
+            style={{ background: status.dot }}
+            aria-hidden="true"
+          />
           {status.label}
         </span>
         <span className="vt-tx-time">{fmtTime(tx.timestamp)}</span>
@@ -877,17 +925,31 @@ interface WindowBannerProps {
   onNext: () => void;
 }
 
-function WindowBanner({ start, end, total, onPrev, onNext }: WindowBannerProps) {
+function WindowBanner({
+  start,
+  end,
+  total,
+  onPrev,
+  onNext,
+}: WindowBannerProps) {
   return (
     <div className="vt-window-banner">
       <span className="vt-window-info">
         Showing {start + 1}–{end} of {total}
       </span>
       <div className="vt-window-nav">
-        <button className="vt-window-btn" onClick={onPrev} disabled={start === 0}>
+        <button
+          className="vt-window-btn"
+          onClick={onPrev}
+          disabled={start === 0}
+        >
           ← Prev
         </button>
-        <button className="vt-window-btn" onClick={onNext} disabled={end >= total}>
+        <button
+          className="vt-window-btn"
+          onClick={onNext}
+          disabled={end >= total}
+        >
           Next →
         </button>
       </div>
