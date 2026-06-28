@@ -198,6 +198,90 @@ describe('ValidationDetail Page', () => {
     expect(screen.getByText('No evidence link provided.')).toBeInTheDocument();
   });
 
+  it('renders evidence preview card with GitHub badge for GitHub URLs', () => {
+    (useVerifierStore as any).mockReturnValue({
+      pendingValidations: [{ ...mockPendingValidations[0], evidenceUrl: 'https://github.com/user/repo' }],
+      approveValidation: mockApproveValidation,
+      rejectValidation: mockRejectValidation,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
+    expect(screen.getByText('github.com')).toBeInTheDocument();
+  });
+
+  it('renders evidence preview card with Figma badge for Figma URLs', () => {
+    (useVerifierStore as any).mockReturnValue({
+      pendingValidations: [{ ...mockPendingValidations[0], evidenceUrl: 'https://www.figma.com/file/abc123' }],
+      approveValidation: mockApproveValidation,
+      rejectValidation: mockRejectValidation,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Figma')).toBeInTheDocument();
+    expect(screen.getByText('www.figma.com')).toBeInTheDocument();
+  });
+
+  it('renders evidence preview card with IPFS badge for IPFS URLs', () => {
+    (useVerifierStore as any).mockReturnValue({
+      pendingValidations: [{ ...mockPendingValidations[0], evidenceUrl: 'https://ipfs.io/ipfs/QmXoyp' }],
+      approveValidation: mockApproveValidation,
+      rejectValidation: mockRejectValidation,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('IPFS')).toBeInTheDocument();
+    expect(screen.getByText('ipfs.io')).toBeInTheDocument();
+  });
+
+  it('renders evidence preview card with Other badge for other URLs', () => {
+    (useVerifierStore as any).mockReturnValue({
+      pendingValidations: [{ ...mockPendingValidations[0], evidenceUrl: 'https://example.com' }],
+      approveValidation: mockApproveValidation,
+      rejectValidation: mockRejectValidation,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Other')).toBeInTheDocument();
+    expect(screen.getByText('example.com')).toBeInTheDocument();
+  });
+
+  it('still renders SafeLink even for invalid URLs', () => {
+    (useVerifierStore as any).mockReturnValue({
+      pendingValidations: [{ ...mockPendingValidations[0], evidenceUrl: 'not-a-valid-url' }],
+      approveValidation: mockApproveValidation,
+      rejectValidation: mockRejectValidation,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/verifier/v-101']}>
+        <ValidationDetail />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('[Invalid Link]')).toBeInTheDocument();
+  });
+
   it('allows switching decision inside the modal', async () => {
     render(
       <MemoryRouter initialEntries={['/verifier/v-101']}>
