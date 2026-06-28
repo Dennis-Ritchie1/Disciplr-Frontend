@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, memo } from "react";
-import { windowRange, WINDOW_THRESHOLD } from "../utils/windowRange";
+import { windowRange } from "../utils/windowRange";
 import { toCsv, downloadCsv } from "../utils/csv";
 import { computeTxTotals } from "../utils/txTotals";
 import { AddressDisplay } from "../components/AddressDisplay";
@@ -245,13 +245,6 @@ const VAULTS = [
   "All Vaults",
   ...Array.from(new Set(MOCK_TRANSACTIONS.map((t) => t.vault))),
 ];
-const TYPES: string[] = [
-  "All Types",
-  "create",
-  "validate",
-  "release",
-  "redirect",
-];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function truncHash(hash: string, head = 8, tail = 6): string {
@@ -365,13 +358,6 @@ export default function VaultTransactions({
     [transactions],
   );
 
-  const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const tx of transactions) {
-      counts[tx.type] = (counts[tx.type] || 0) + 1;
-    }
-    return counts;
-  }, [transactions]);
 
   // Live counts reflect the current filtered (visible) set
   const filteredTypeCounts = useMemo(() => {

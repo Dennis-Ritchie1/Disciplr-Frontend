@@ -1,10 +1,10 @@
-﻿import React, { Suspense, lazy, act } from 'react'
+import { Suspense, lazy } from 'react'
 import { describe, expect, it, vi, beforeAll } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { buildAnalyticsSeriesColors } from '../analyticsTheme'
 
-// â”€â”€ Browser API stubs (jsdom doesn't implement these) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Browser API stubs (jsdom doesn't implement these) ───────────────────────
 
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
@@ -22,7 +22,7 @@ beforeAll(() => {
   })
 })
 
-// â”€â”€ Heavy dep mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Heavy dep mocks ──────────────────────────────────────────────────────────
 
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
@@ -84,6 +84,9 @@ const tokenFixture = {
   border: 'border-token',
   bg: 'bg-token',
   accentTransparent: 'accent-transparent-token',
+  legendGap: 'legend-gap-token',
+  legendSwatchSize: 'legend-swatch-size-token',
+  legendLabelRole: 'caption' as const,
 }
 
 describe('Analytics chart theme mapping', () => {
