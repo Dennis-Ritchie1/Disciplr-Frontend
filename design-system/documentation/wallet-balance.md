@@ -124,8 +124,44 @@ The crisp rule for `no_trustline` vs `error`: `no_trustline` means the fetch
 **succeeded** and the account simply lacks a USDC trustline (offer to add one);
 `error` means the fetch **failed** and no reliable balance is available (retry
 or surface a message depending on the code above).
+## WalletBalanceChip — header balance display
+
+`src/components/Wallet/WalletBalanceChip.tsx` renders a compact chip in the
+Layout header that shows the live USDC balance at a glance. It consumes
+`useWallet()` and maps `balanceStatus` to appropriate views.
+
+### States
+
+| `balanceStatus` / condition | Render |
+|---|---|
+| `address` is `null` | Nothing |
+| `idle` | Nothing |
+| `loading` | `Skeleton` shimmer (80×18 px) |
+| `success` | Formatted balance value + "USDC" |
+| `no_trustline` | `0.00 USDC` (dimmed, with title attribute) |
+| `error` | `! USDC` (danger color, `role="status"`) |
+
+### Mounting
+
+The chip mounts automatically via `Layout.tsx` next to `WalletConnectButton`:
+
+```tsx
+// Layout.tsx (already wired)
+import { WalletBalanceChip } from './Wallet/WalletBalanceChip';
+// ...
+<WalletBalanceChip />
+<WalletConnectButton />
+```
+
+### Styling
+
+- Uses `wallet-balance-chip.css` scoped to the component.
+- Pill shape via `var(--radius-full)`, background `var(--surface-raised)`.
+- Error state uses `var(--danger)`, no-trustline uses `var(--muted)`.
+- Loading state reuses the existing `Skeleton` component with `data-testid="skeleton"`.
 
 ## TrustlineBanner
+
 
 `src/components/TrustlineBanner.tsx` renders a dismissible warning banner when
 `balanceStatus === 'no_trustline'` and the wallet is connected. It displays the

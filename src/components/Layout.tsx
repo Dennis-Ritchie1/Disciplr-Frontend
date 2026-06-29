@@ -2,6 +2,7 @@ import React, { useState, type HTMLAttributes } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { WalletConnectButton } from "./Wallet/WalletConnectButton";
+import { WalletBalanceChip } from "./Wallet/WalletBalanceChip";
 import MobileDrawer from "./MobileDrawer";
 import NavLink from "./NavLink";
 import { Text } from "./Text";
@@ -87,6 +88,7 @@ export default function Layout({ children }: LayoutProps) {
               Create Vault
             </Link>
             <NotificationBell />
+            <WalletBalanceChip />
             <WalletConnectButton />
           </div>
         </nav>
