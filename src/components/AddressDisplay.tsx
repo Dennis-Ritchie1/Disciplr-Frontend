@@ -58,7 +58,7 @@ export function AddressDisplay({
                     padding: '0 2px', fontSize: 13, lineHeight: 1,
                 }}
             >
-                {copied ? 'âœ“' : 'âŽ˜'}
+                {copied ? '✓' : '⏘'}
             </button>
 
             {network != null && isValid && (
@@ -69,7 +69,7 @@ export function AddressDisplay({
                     aria-label={`View ${address} on Stellar Expert`}
                     style={{ color: 'var(--accent)', fontSize: 12, lineHeight: 1 }}
                 >
-                    â†—
+                    ↗
                 </a>
             )}
         </span>
